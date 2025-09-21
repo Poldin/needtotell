@@ -54,7 +54,7 @@ export default function NewPage() {
 
   if (submitted) {
     return (
-      <div className={`min-h-screen bg-black text-white p-8 ${inter.className}`}>
+      <div className={`min-h-screen bg-black text-white p-4 md:p-8 ${inter.className}`}>
         <div className="max-w-4xl mx-auto">
           {/* Navigation back to home */}
           <div className="mb-8">
@@ -89,7 +89,7 @@ export default function NewPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-black text-white p-8 ${inter.className}`}>
+    <div className={`min-h-screen bg-black text-white p-4 md:p-8 ${inter.className}`}>
       <div className="max-w-4xl mx-auto">
         {/* Navigation back to home */}
         <div className="mb-8">
@@ -114,8 +114,9 @@ export default function NewPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="write it here"
-              className="w-full bg-gray-950 border border-gray-600 rounded-lg px-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-gray-400 transition-colors resize-none"
-              rows={6}
+              className="w-full bg-gray-950 border border-gray-600 rounded-lg px-3 md:px-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-gray-400 transition-colors resize-none"
+              rows={12}
+              style={{ minHeight: '12rem' }}
               maxLength={1000}
             />
           </div>
