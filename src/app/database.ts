@@ -45,18 +45,21 @@ export type Database = {
           body: string | null
           created_at: string
           id: string
+          sharing_code: string | null
         }
         Insert: {
           answers?: Json | null
           body?: string | null
           created_at?: string
           id?: string
+          sharing_code?: string | null
         }
         Update: {
           answers?: Json | null
           body?: string | null
           created_at?: string
           id?: string
+          sharing_code?: string | null
         }
         Relationships: []
       }

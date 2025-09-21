@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import ScrollToTop from "./components/ScrollToTop";
 import SearchBar from "./components/SearchBar";
 import PostsList from "./components/PostsList";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,6 +15,18 @@ const inter = Inter({
 
 function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [initialQuery, setInitialQuery] = useState('');
+
+  useEffect(() => {
+    // Controlla i parametri URL per il sharing_code
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharingCode = urlParams.get('src');
+    
+    if (sharingCode) {
+      setInitialQuery(sharingCode);
+      setSearchQuery(sharingCode);
+    }
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -52,7 +64,7 @@ function HomePage() {
 
       {/* Main content */}
       <div className="pt-20 px-4 md:px-8">
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar onSearch={handleSearch} initialQuery={initialQuery} />
         <PostsList searchQuery={searchQuery} />
       </div>
     </div>

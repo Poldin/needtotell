@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  initialQuery?: string;
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProps) {
+  const [query, setQuery] = useState(initialQuery);
+  const [hasBeenInitialized, setHasBeenInitialized] = useState(false);
+
+  useEffect(() => {
+    if (initialQuery && !hasBeenInitialized) {
+      setQuery(initialQuery);
+      onSearch(initialQuery);
+      setHasBeenInitialized(true);
+    }
+  }, [initialQuery, onSearch, hasBeenInitialized]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

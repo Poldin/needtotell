@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 // Sample fallback data
 const getSamplePosts = (page: number = 0, search: string = '') => {
   const allPosts = [
-    { id: '1', date: '09/2025', content: 'Sometimes I wonder if we\'re all just trying to find our place in this vast digital landscape. The connections we make online feel both intimate and distant at the same time.', answers: [{ id: 'a1', content: 'I feel the same way. The digital world can be both connecting and isolating.' }] },
-    { id: '2', date: '08/2025', content: 'I\'ve been thinking about the weight of words lately. How a simple message can carry so much meaning, yet sometimes fail to convey what we really want to say.', answers: null },
-    { id: '3', date: '09/2025', content: 'There\'s something beautiful about shared silence. Not everything needs to be said, but everything needs to be felt.', answers: [{ id: 'a2', content: 'Silence speaks volumes sometimes.' }, { id: 'a3', content: 'This resonates deeply with me.' }] },
-    { id: '4', date: '07/2025', content: 'The morning coffee tastes different when you\'re truly present. No notifications, no rush, just the warmth and the moment.', answers: null },
-    { id: '5', date: '09/2025', content: 'I realized today that vulnerability isn\'t weakness—it\'s the courage to show up as yourself, even when you\'re not sure who that is.', answers: [{ id: 'a4', content: 'This is so true. Authenticity takes courage.' }] },
+    { id: '1', date: '09/2025', content: 'Sometimes I wonder if we\'re all just trying to find our place in this vast digital landscape. The connections we make online feel both intimate and distant at the same time.', answers: [{ id: 'a1', content: 'I feel the same way. The digital world can be both connecting and isolating.' }], sharing_code: 'ABC12345' },
+    { id: '2', date: '08/2025', content: 'I\'ve been thinking about the weight of words lately. How a simple message can carry so much meaning, yet sometimes fail to convey what we really want to say.', answers: null, sharing_code: 'DEF67890' },
+    { id: '3', date: '09/2025', content: 'There\'s something beautiful about shared silence. Not everything needs to be said, but everything needs to be felt.', answers: [{ id: 'a2', content: 'Silence speaks volumes sometimes.' }, { id: 'a3', content: 'This resonates deeply with me.' }], sharing_code: 'GHI11111' },
+    { id: '4', date: '07/2025', content: 'The morning coffee tastes different when you\'re truly present. No notifications, no rush, just the warmth and the moment.', answers: null, sharing_code: 'JKL22222' },
+    { id: '5', date: '09/2025', content: 'I realized today that vulnerability isn\'t weakness—it\'s the courage to show up as yourself, even when you\'re not sure who that is.', answers: [{ id: 'a4', content: 'This is so true. Authenticity takes courage.' }], sharing_code: 'MNO33333' },
     { id: '6', date: '08/2025', content: 'Walking without a destination taught me more about purpose than any goal-setting workshop ever could.', answers: null },
     { id: '7', date: '09/2025', content: 'The best conversations happen when both people forget they\'re trying to impress each other.', answers: null },
     { id: '8', date: '07/2025', content: 'I miss the feeling of getting lost in a book so completely that hours pass without notice. When did reading become another task to optimize?', answers: null },
@@ -59,7 +59,8 @@ const getSamplePosts = (page: number = 0, search: string = '') => {
   let filteredPosts = allPosts;
   if (search) {
     filteredPosts = allPosts.filter(post => 
-      post.content.toLowerCase().includes(search.toLowerCase())
+      post.content.toLowerCase().includes(search.toLowerCase()) ||
+      (post.sharing_code && post.sharing_code.toLowerCase().includes(search.toLowerCase()))
     );
   }
 
@@ -105,12 +106,12 @@ export async function GET(request: NextRequest) {
     
     let query = supabase
       .from('needs')
-      .select('id, body, created_at, answers')
+      .select('id, body, created_at, answers, sharing_code')
       .not('body', 'is', null)
       .order('created_at', { ascending: false });
 
     if (search) {
-      query = query.ilike('body', `%${search}%`);
+      query = query.or(`body.ilike.%${search}%,sharing_code.ilike.%${search}%`);
     }
 
     const { data: allData, error: allError } = await query;
@@ -154,7 +155,8 @@ export async function GET(request: NextRequest) {
         id: item.id || `post-${page}-${index}`,
         date,
         content: item.body || 'No content available',
-        answers: item.answers || null
+        answers: item.answers || null,
+        sharing_code: item.sharing_code || null
       }
     });
 

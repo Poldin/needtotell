@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, Reply, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageCircle, Reply, ChevronDown, ChevronUp, Share } from 'lucide-react';
 import AnswerPopup from './AnswerPopup';
 
 interface Answer {
@@ -15,6 +15,7 @@ interface Post {
   date: string;
   content: string;
   answers?: Answer[] | null;
+  sharing_code?: string | null;
 }
 
 interface PostsListProps {
@@ -142,6 +143,26 @@ export default function PostsList({ searchQuery }: PostsListProps) {
     });
   };
 
+  const handleShare = (post: Post) => {
+    if (post.sharing_code) {
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/?src=${post.sharing_code}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Need to tell',
+          text: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
+          url: shareUrl,
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          // Potresti aggiungere qui una notifica di successo
+          console.log('Link copiato negli appunti');
+        });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -172,28 +193,39 @@ export default function PostsList({ searchQuery }: PostsListProps) {
               </div>
               
               {/* Answer buttons */}
-              <div className="flex items-center gap-3 pt-4 border-t border-gray-800">
-                {getAnswerCount(post) > 0 && (
-                   <button 
-                     onClick={() => toggleAnswers(post.id)}
-                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-                   >
-                     <MessageCircle className="w-4 h-4" />
-                     <span>Answers</span>
-                     {expandedAnswers.has(post.id) ? (
-                       <ChevronUp className="w-4 h-4" />
-                     ) : (
-                       <ChevronDown className="w-4 h-4" />
-                     )}
-                   </button>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+                <div className="flex items-center gap-3">
+                  {getAnswerCount(post) > 0 && (
+                     <button 
+                       onClick={() => toggleAnswers(post.id)}
+                       className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                     >
+                       <MessageCircle className="w-4 h-4" />
+                       <span>Answers</span>
+                       {expandedAnswers.has(post.id) ? (
+                         <ChevronUp className="w-4 h-4" />
+                       ) : (
+                         <ChevronDown className="w-4 h-4" />
+                       )}
+                     </button>
+                  )}
+                  <button 
+                    onClick={() => handleAnswerClick(post.id)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    <Reply className="w-4 h-4" />
+                    <span>Answer</span>
+                  </button>
+                </div>
+                
+                {post.sharing_code && (
+                  <button 
+                    onClick={() => handleShare(post)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    <Share className="w-4 h-4" />
+                  </button>
                 )}
-                <button 
-                  onClick={() => handleAnswerClick(post.id)}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                  <Reply className="w-4 h-4" />
-                  <span>Answer</span>
-                </button>
               </div>
             </div>
 
