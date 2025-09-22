@@ -188,7 +188,7 @@ export default function PostsList({ searchQuery }: PostsListProps) {
               <div className="text-gray-500 text-xs mb-4">
                 {post.date}
               </div>
-              <div className="text-white leading-relaxed mb-4">
+              <div className="text-white leading-relaxed mb-4 whitespace-pre-wrap">
                 {post.content}
               </div>
               
@@ -244,7 +244,7 @@ export default function PostsList({ searchQuery }: PostsListProps) {
                             }).replace('/', '/')}
                           </div>
                         )}
-                        <div className="text-gray-200 leading-relaxed">
+                        <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
                           {answer.content}
                         </div>
                       </div>
