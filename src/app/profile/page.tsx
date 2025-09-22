@@ -1,47 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Inter } from "next/font/google";
 import { useAuth } from '../../lib/auth-context';
 import { useRouter } from 'next/navigation';
 import PostsList from '../components/PostsList';
 import SidebarMenu from "../components/HamburgerMenu";
+import type { Tables } from '../database';
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["100", "400", "700"],
 });
 
-interface Answer {
-  id: string;
-  content: string;
-  created_at?: string;
-  user_id?: string;
-}
-
-interface Post {
-  id: string;
-  date: string;
-  content: string;
-  answers?: Answer[] | null;
-  sharing_code?: string | null;
-  user_id?: string;
-}
-
-interface SavedPost {
-  id: number;
-  created_at: string;
-  reaction: string | null;
-  need_id: string;
-  needs: Post;
-}
+type SavedWithNeed = Tables<'saved'> & { needs: Tables<'needs'> };
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'mine' | 'saved'>('mine');
-  const [myPosts, setMyPosts] = useState<Post[]>([]);
-  const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
+  const [savedPosts, setSavedPosts] = useState<SavedWithNeed[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,51 +27,28 @@ export default function ProfilePage() {
       router.push('/auth/login');
       return;
     }
-    fetchData();
   }, [user, router]);
 
-  const fetchData = async () => {
+  const fetchSavedPosts = useCallback(async () => {
     setLoading(true);
-    try {
-      if (activeTab === 'mine') {
-        await fetchMyPosts();
-      } else {
-        await fetchSavedPosts();
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMyPosts = async () => {
-    try {
-      const response = await fetch(`/api/posts?user_id=${user?.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setMyPosts(data.posts || []);
-      }
-    } catch (error) {
-      console.error('Error fetching my posts:', error);
-    }
-  };
-
-  const fetchSavedPosts = async () => {
     try {
       const response = await fetch('/api/saved');
       if (response.ok) {
-        const data = await response.json();
+        const data: SavedWithNeed[] = await response.json();
         setSavedPosts(data || []);
       }
     } catch (error) {
       console.error('Error fetching saved posts:', error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+    if (activeTab === 'saved') {
+      fetchSavedPosts();
+    }
+  }, [activeTab, fetchSavedPosts]);
 
 
 
@@ -177,15 +132,15 @@ export default function ProfilePage() {
                 <PostsList 
                   searchQuery=""
                   externalPosts={savedPosts.map((saved) => {
-                    const needs: any = (saved as any).needs || {};
+                    const needs: Tables<'needs'> = saved.needs as Tables<'needs'>;
                     const date = needs.created_at
                       ? new Date(needs.created_at).toLocaleDateString('en-US', { month: '2-digit', year: 'numeric' }).replace('/', '/')
                       : '';
                     return {
                       id: needs.id,
                       date,
-                      content: needs.body ?? needs.content ?? '',
-                      answers: needs.answers ?? null,
+                      content: needs.body ?? '',
+                      answers: (needs.answers as unknown as { id: string; content: string; created_at?: string; user_id?: string; }[]) || null,
                       sharing_code: needs.sharing_code ?? null,
                     };
                   })}
