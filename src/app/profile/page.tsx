@@ -176,7 +176,19 @@ export default function ProfilePage() {
               {savedPosts.length > 0 ? (
                 <PostsList 
                   searchQuery=""
-                  externalPosts={savedPosts.map(saved => saved.needs)}
+                  externalPosts={savedPosts.map((saved) => {
+                    const needs: any = (saved as any).needs || {};
+                    const date = needs.created_at
+                      ? new Date(needs.created_at).toLocaleDateString('en-US', { month: '2-digit', year: 'numeric' }).replace('/', '/')
+                      : '';
+                    return {
+                      id: needs.id,
+                      date,
+                      content: needs.body ?? needs.content ?? '',
+                      answers: needs.answers ?? null,
+                      sharing_code: needs.sharing_code ?? null,
+                    };
+                  })}
                   externalLoading={false}
                 />
               ) : (
