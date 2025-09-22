@@ -1,11 +1,10 @@
 'use client';
 
-import Link from "next/link";
 import { Inter } from "next/font/google";
-import { Plus } from "lucide-react";
 import ScrollToTop from "./components/ScrollToTop";
 import SearchBar from "./components/SearchBar";
 import PostsList from "./components/PostsList";
+import HamburgerMenu from "./components/HamburgerMenu";
 import { useState, useEffect } from 'react';
 
 const inter = Inter({
@@ -43,21 +42,9 @@ function HomePage() {
             Need to tell
           </div>
           
-          {/* Right side - Navigation buttons */}
-          <div className="flex gap-4">
-            <Link 
-              href="/new" 
-              className="bg-gray-950 hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors font-medium border border-gray-700 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              New
-            </Link>
-            <Link 
-              href="/why" 
-              className="bg-gray-950 hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors font-medium border border-gray-700"
-            >
-              Why
-            </Link>
+          {/* Right side - Hamburger menu */}
+          <div>
+            <HamburgerMenu />
           </div>
         </div>
       </nav>

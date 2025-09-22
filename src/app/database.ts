@@ -46,6 +46,7 @@ export type Database = {
           created_at: string
           id: string
           sharing_code: string | null
+          user_id: string | null
         }
         Insert: {
           answers?: Json | null
@@ -53,6 +54,7 @@ export type Database = {
           created_at?: string
           id?: string
           sharing_code?: string | null
+          user_id?: string | null
         }
         Update: {
           answers?: Json | null
@@ -60,8 +62,17 @@ export type Database = {
           created_at?: string
           id?: string
           sharing_code?: string | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "needs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

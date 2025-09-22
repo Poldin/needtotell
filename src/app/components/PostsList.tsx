@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Reply, ChevronDown, ChevronUp, Share } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import AnswerPopup from './AnswerPopup';
+import { useAuth } from '../../lib/auth-context';
 
 interface Answer {
   id: string;
   content: string;
   created_at?: string;
+  user_id?: string;
 }
 
 interface Post {
@@ -31,6 +34,8 @@ export default function PostsList({ searchQuery }: PostsListProps) {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [isAnswerPopupOpen, setIsAnswerPopupOpen] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const router = useRouter();
 
   const fetchPosts = useCallback(async (pageNum: number, search: string = '', reset: boolean = false) => {
     try {
@@ -97,6 +102,12 @@ export default function PostsList({ searchQuery }: PostsListProps) {
   };
 
   const handleAnswerClick = (postId: string) => {
+    if (!user) {
+      // Redirect to login with current page as redirect
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+    
     setSelectedPostId(postId);
     setIsAnswerPopupOpen(true);
   };
@@ -231,11 +242,11 @@ export default function PostsList({ searchQuery }: PostsListProps) {
 
             {/* Answers section */}
             {expandedAnswers.has(post.id) && post.answers && post.answers.length > 0 && (
-              <div className="border-t border-gray-800 bg-gray-900">
-                 <div className="p-6">
-                  <div className="space-y-4">
-                    {getSortedAnswers(post.answers).map((answer) => (
-                      <div key={answer.id} className="bg-gray-950 border border-gray-800 rounded-lg p-4">
+              <div className="p-6">
+                <div className="space-y-4">
+                  {getSortedAnswers(post.answers).map((answer) => (
+                    <div key={answer.id} className="flex justify-end ">
+                      <div className="bg-gray-950 border border-gray-800 rounded-lg p-4 w-4/5">
                         {answer.created_at && (
                           <div className="text-gray-500 text-xs mb-2">
                             {new Date(answer.created_at).toLocaleDateString('en-US', {
@@ -248,8 +259,8 @@ export default function PostsList({ searchQuery }: PostsListProps) {
                           {answer.content}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

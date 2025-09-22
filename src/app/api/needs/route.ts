@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if Supabase is configured
-    const hasSupabase = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY;
+    const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!hasSupabase) {
       console.log('Supabase not configured, simulating success');
@@ -21,13 +23,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Use real Supabase when configured
-    const { supabase } = await import('../../../lib/supabase');
+    // Create Supabase client for server-side
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
+    )
+
+    // Get the authenticated user
+    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    
+    if (authError || !session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
     const { data, error } = await supabase
       .from('needs')
       .insert({
-        body: body.trim()
+        body: body.trim(),
+        user_id: session.user.id
       })
       .select()
       .single();

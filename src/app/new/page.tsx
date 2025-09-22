@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useAuth } from "../../lib/auth-context";
+import { useRouter } from "next/navigation";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -14,6 +16,27 @@ export default function NewPage() {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Redirect to login if not authenticated (client-side check as backup)
+  if (!loading && !user) {
+    router.push('/auth/login?redirect=/new');
+    return null;
+  }
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className={`min-h-screen bg-black text-white p-4 md:p-8 ${inter.className}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-gray-400">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
