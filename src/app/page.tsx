@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import ScrollToTop from "./components/ScrollToTop";
 import SearchBar from "./components/SearchBar";
 import PostsList from "./components/PostsList";
-import HamburgerMenu from "./components/HamburgerMenu";
+import SidebarMenu from "./components/HamburgerMenu";
 import { useState, useEffect } from 'react';
 
 const inter = Inter({
@@ -42,9 +42,9 @@ function HomePage() {
             Need to tell
           </div>
           
-          {/* Right side - Hamburger menu */}
+          {/* Right side - Sidebar menu */}
           <div>
-            <HamburgerMenu />
+            <SidebarMenu />
           </div>
         </div>
       </nav>

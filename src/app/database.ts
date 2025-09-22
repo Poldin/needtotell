@@ -74,6 +74,45 @@ export type Database = {
           }
         ]
       }
+      saved: {
+        Row: {
+          id: number
+          created_at: string
+          need_id: string | null
+          user_id: string | null
+          reaction: string | null
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+          need_id?: string | null
+          user_id?: string | null
+          reaction?: string | null
+        }
+        Update: {
+          id?: number
+          created_at?: string
+          need_id?: string | null
+          user_id?: string | null
+          reaction?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_need_id_fkey"
+            columns: ["need_id"]
+            isOneToOne: false
+            referencedRelation: "needs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

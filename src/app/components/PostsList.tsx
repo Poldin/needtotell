@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, Reply, ChevronDown, ChevronUp, Share } from 'lucide-react';
+import { MessageCircle, Reply, ChevronDown, ChevronUp, Share, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AnswerPopup from './AnswerPopup';
 import { useAuth } from '../../lib/auth-context';
+import { supabase } from '../../lib/supabase-client';
 
 interface Answer {
   id: string;
@@ -23,9 +24,12 @@ interface Post {
 
 interface PostsListProps {
   searchQuery: string;
+  userId?: string; // Optional: filter posts by user
+  externalPosts?: Post[]; // Optional: use external posts instead of fetching
+  externalLoading?: boolean; // Optional: external loading state
 }
 
-export default function PostsList({ searchQuery }: PostsListProps) {
+export default function PostsList({ searchQuery, userId, externalPosts, externalLoading }: PostsListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -36,6 +40,8 @@ export default function PostsList({ searchQuery }: PostsListProps) {
   const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const router = useRouter();
+  const [savedMap, setSavedMap] = useState<Record<string, boolean>>({});
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
 
   const fetchPosts = useCallback(async (pageNum: number, search: string = '', reset: boolean = false) => {
     try {
@@ -44,7 +50,8 @@ export default function PostsList({ searchQuery }: PostsListProps) {
 
       const params = new URLSearchParams({
         page: pageNum.toString(),
-        ...(search && { search })
+        ...(search && { search }),
+        ...(userId && { user_id: userId })
       });
 
       const response = await fetch(`/api/posts?${params}`);
@@ -79,6 +86,32 @@ export default function PostsList({ searchQuery }: PostsListProps) {
     }
   }, []);
 
+  // Load saved status for current user's visible posts
+  useEffect(() => {
+    const fetchSavedStatuses = async () => {
+      if (!user || posts.length === 0) return;
+      try {
+        const postIds = posts.map(p => p.id);
+        const { data, error } = await supabase
+          .from('saved')
+          .select('need_id')
+          .in('need_id', postIds)
+          .eq('user_id', user.id);
+        if (error) return;
+        const nextMap: Record<string, boolean> = {};
+        data?.forEach(row => {
+
+          nextMap[row.need_id as string] = true;
+        });
+        setSavedMap(prev => ({ ...prev, ...nextMap }));
+      } catch {
+        // ignore
+      }
+    };
+    fetchSavedStatuses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, posts]);
+
   // Fallback sample data
   const getSamplePosts = (): Post[] => {
     return [
@@ -92,11 +125,17 @@ export default function PostsList({ searchQuery }: PostsListProps) {
 
   // Load initial posts
   useEffect(() => {
-    fetchPosts(0, searchQuery, true);
-  }, [searchQuery, fetchPosts]);
+    if (externalPosts) {
+      setPosts(externalPosts);
+      setLoading(externalLoading || false);
+      setHasMore(false);
+    } else {
+      fetchPosts(0, searchQuery, true);
+    }
+  }, [searchQuery, fetchPosts, externalPosts, externalLoading]);
 
   const loadMore = () => {
-    if (!loadingMore && hasMore) {
+    if (!loadingMore && hasMore && !externalPosts) {
       fetchPosts(page + 1, searchQuery);
     }
   };
@@ -174,6 +213,43 @@ export default function PostsList({ searchQuery }: PostsListProps) {
     }
   };
 
+  const handleToggleSave = async (post: Post) => {
+    if (!user) {
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+    if (savingIds.has(post.id)) return;
+    const nextSaving = new Set(savingIds);
+    nextSaving.add(post.id);
+    setSavingIds(nextSaving);
+    try {
+      const isSaved = !!savedMap[post.id];
+      if (isSaved) {
+        const { error } = await supabase
+          .from('saved')
+          .delete()
+          .eq('need_id', post.id)
+          .eq('user_id', user.id);
+        if (!error) {
+          setSavedMap(prev => ({ ...prev, [post.id]: false }));
+        }
+      } else {
+        const { error } = await supabase
+          .from('saved')
+          .insert({ need_id: post.id, user_id: user.id, reaction: 'saved' });
+        if (!error) {
+          setSavedMap(prev => ({ ...prev, [post.id]: true }));
+        }
+      }
+    } finally {
+      setSavingIds(prev => {
+        const s = new Set(prev);
+        s.delete(post.id);
+        return s;
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -203,7 +279,8 @@ export default function PostsList({ searchQuery }: PostsListProps) {
                 {post.content}
               </div>
               
-              {/* Answer buttons */}
+              {/* Answer buttons */
+              }
               <div className="flex items-center justify-between pt-4 border-t border-gray-800">
                 <div className="flex items-center gap-3">
                   {getAnswerCount(post) > 0 && (
@@ -228,15 +305,28 @@ export default function PostsList({ searchQuery }: PostsListProps) {
                     <span>Answer</span>
                   </button>
                 </div>
-                
-                {post.sharing_code && (
-                  <button 
-                    onClick={() => handleShare(post)}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleToggleSave(post)}
+                    disabled={savingIds.has(post.id)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm disabled:opacity-50"
+                    aria-label={savedMap[post.id] ? 'Unsave' : 'Save'}
                   >
-                    <Share className="w-4 h-4" />
+                    {savedMap[post.id] ? (
+                      <BookmarkCheck className="w-4 h-4" />
+                    ) : (
+                      <Bookmark className="w-4 h-4" />
+                    )}
                   </button>
-                )}
+                  {post.sharing_code && (
+                    <button 
+                      onClick={() => handleShare(post)}
+                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                    >
+                      <Share className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -267,7 +357,7 @@ export default function PostsList({ searchQuery }: PostsListProps) {
           </div>
         ))}
         
-        {hasMore && (
+        {hasMore && !externalPosts && (
           <div className="flex justify-center pt-8 pb-12">
             <button 
               onClick={loadMore}

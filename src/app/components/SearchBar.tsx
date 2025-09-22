@@ -43,7 +43,7 @@ export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProp
       <form onSubmit={handleSubmit} className="relative w-full max-w-2xl">
         <input
           type="text"
-          placeholder="search here"
+          placeholder="search"
           value={query}
           onChange={handleChange}
           className="w-full bg-gray-950 border border-gray-600 rounded-lg px-4 py-3 pl-12 text-white placeholder-gray-400 focus:outline-none focus:border-gray-400 transition-colors"

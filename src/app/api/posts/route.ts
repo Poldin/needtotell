@@ -85,8 +85,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '0')
   const search = searchParams.get('search') || ''
+  const user_id = searchParams.get('user_id') || ''
 
-  console.log('API called with:', { page, search });
+  console.log('API called with:', { page, search, user_id });
 
   // For now, always use sample data since Supabase isn't configured
   // You can uncomment the Supabase code below when you have it set up
@@ -106,12 +107,16 @@ export async function GET(request: NextRequest) {
     
     let query = supabase
       .from('needs')
-      .select('id, body, created_at, answers, sharing_code')
+      .select('id, body, created_at, answers, sharing_code, user_id')
       .not('body', 'is', null)
       .order('created_at', { ascending: false });
 
     if (search) {
       query = query.or(`body.ilike.%${search}%,sharing_code.ilike.%${search}%`);
+    }
+
+    if (user_id) {
+      query = query.eq('user_id', user_id);
     }
 
     const { data: allData, error: allError } = await query;
@@ -156,7 +161,8 @@ export async function GET(request: NextRequest) {
         date,
         content: item.body || 'No content available',
         answers: item.answers || null,
-        sharing_code: item.sharing_code || null
+        sharing_code: item.sharing_code || null,
+        user_id: item.user_id || null
       }
     });
 

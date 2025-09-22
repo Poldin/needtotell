@@ -38,11 +38,11 @@ export default function LoginPage() {
       if (error) {
         setError(error);
       } else {
-        // Redirect to /new or wherever the user was trying to go
-        const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/new';
+        // Redirect to / or wherever the user was trying to go
+        const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
         router.push(redirectTo);
       }
-    } catch (err) {
+    } catch {
       setError('Errore durante il login');
     } finally {
       setIsLoading(false);
