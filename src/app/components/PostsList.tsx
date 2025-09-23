@@ -268,10 +268,10 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
 
   return (
     <>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
         {posts.map((post) => (
           <div key={post.id} className="bg-gray-950 border border-gray-700 rounded-lg overflow-hidden">
-            <div className="p-6">
+            <div className="p-2 md:p-6">
               <div className="text-gray-500 text-xs mb-4">
                 {post.date}
               </div>
@@ -281,8 +281,8 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
               
               {/* Answer buttons */
               }
-              <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-800">
+                <div className="flex items-center gap-2 md:gap-3">
                   {getAnswerCount(post) > 0 && (
                      <button 
                        onClick={() => toggleAnswers(post.id)}
@@ -301,11 +301,11 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
                     onClick={() => handleAnswerClick(post.id)}
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
                   >
-                    <Reply className="w-4 h-4" />
+                    <Reply className="w-5 h-5 md:w-4 md:h-4" />
                     <span>Answer</span>
                   </button>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                   <button
                     onClick={() => handleToggleSave(post)}
                     disabled={savingIds.has(post.id)}
@@ -313,9 +313,9 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
                     aria-label={savedMap[post.id] ? 'Unsave' : 'Save'}
                   >
                     {savedMap[post.id] ? (
-                      <BookmarkCheck className="w-4 h-4" />
+                      <BookmarkCheck className="w-5 h-5 md:w-4 md:h-4" />
                     ) : (
-                      <Bookmark className="w-4 h-4" />
+                      <Bookmark className="w-5 h-5 md:w-4 md:h-4" />
                     )}
                   </button>
                   {post.sharing_code && (
@@ -323,7 +323,7 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
                       onClick={() => handleShare(post)}
                       className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
                     >
-                      <Share className="w-4 h-4" />
+                      <Share className="w-5 h-5 md:w-4 md:h-4" />
                     </button>
                   )}
                 </div>
@@ -332,11 +332,11 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
 
             {/* Answers section */}
             {expandedAnswers.has(post.id) && post.answers && post.answers.length > 0 && (
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <div className="space-y-4">
                   {getSortedAnswers(post.answers).map((answer) => (
                     <div key={answer.id} className="flex justify-end ">
-                      <div className="bg-gray-950 border border-gray-800 rounded-lg p-4 w-4/5">
+                      <div className="bg-gray-950 border border-gray-800 rounded-lg p-3 md:p-4 w-4/5">
                         {answer.created_at && (
                           <div className="text-gray-500 text-xs mb-2">
                             {new Date(answer.created_at).toLocaleDateString('en-US', {
