@@ -116,6 +116,14 @@ export default function SidebarMenu() {
               </Link>
 
             <Link
+              href="/chat"
+              onClick={closeMenu}
+              className="flex items-center gap-3 px-6 py-4 text-white hover:bg-gray-800 transition-colors border-b border-gray-800"
+            >
+              Chat
+            </Link>
+
+            <Link
               href="/new"
               onClick={closeMenu}
               className="flex items-center gap-3 px-6 py-4 text-white hover:bg-gray-800 transition-colors border-b border-gray-800"

@@ -20,6 +20,7 @@ interface Post {
   content: string;
   answers?: Answer[] | null;
   sharing_code?: string | null;
+  user_id?: string | null;
 }
 
 interface PostsListProps {
@@ -213,6 +214,28 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
     }
   };
 
+  const handleChatClick = async (post: Post) => {
+    if (!user) {
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ need_post_id: post.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.id) {
+        router.push(`/chat/${data.id}`);
+      } else {
+        console.error('Chat API error', data?.error);
+      }
+    } catch (e) {
+      console.error('Chat start error', e);
+    }
+  };
+
   const handleToggleSave = async (post: Post) => {
     if (!user) {
       router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
@@ -271,7 +294,7 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
       <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
         {posts.map((post) => (
           <div key={post.id} className="bg-gray-950 border border-gray-700 rounded-lg overflow-hidden">
-            <div className="p-2 md:p-6">
+            <div className="p-2 md:p-4">
               <div className="text-gray-500 text-xs mb-4">
                 {post.date}
               </div>
@@ -302,7 +325,14 @@ export default function PostsList({ searchQuery, userId, externalPosts, external
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
                   >
                     <Reply className="w-5 h-5 md:w-4 md:h-4" />
-                    <span>Answer</span>
+                    <span>answer</span>
+                  </button>
+                  <button 
+                    onClick={() => handleChatClick(post)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    <MessageCircle className="w-5 h-5 md:w-4 md:h-4" />
+                    <span>chat</span>
                   </button>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3">

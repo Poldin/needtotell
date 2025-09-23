@@ -74,6 +74,48 @@ export type Database = {
           }
         ]
       }
+      , chat: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string | null
+          need_post_id: string | null
+          chat_initiator_id: string | null
+          data: Json | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string | null
+          need_post_id?: string | null
+          chat_initiator_id?: string | null
+          data?: Json | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string | null
+          need_post_id?: string | null
+          chat_initiator_id?: string | null
+          data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_chat_initiator_id_fkey"
+            columns: ["chat_initiator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_need_post_id_fkey"
+            columns: ["need_post_id"]
+            isOneToOne: false
+            referencedRelation: "needs"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       saved: {
         Row: {
           id: number
@@ -107,6 +149,48 @@ export type Database = {
           {
             foreignKeyName: "saved_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      , chat_messages: {
+        Row: {
+          id: number
+          created_at: string
+          body: string | null
+          data: Json | null
+          chat_id: string | null
+          message_author_id: string | null
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+          body?: string | null
+          data?: Json | null
+          chat_id?: string | null
+          message_author_id?: string | null
+        }
+        Update: {
+          id?: number
+          created_at?: string
+          body?: string | null
+          data?: Json | null
+          chat_id?: string | null
+          message_author_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_message_author_id_fkey"
+            columns: ["message_author_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
